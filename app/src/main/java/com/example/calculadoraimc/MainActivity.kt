@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -64,6 +67,27 @@ fun IMCScreen(modifier: Modifier = Modifier) {
             .fillMaxSize()
     ) {
 
+        var altura by remember {
+            mutableStateOf("")
+        }
+
+        var peso by remember {
+            mutableStateOf("")
+        }
+
+        var imc: Double by remember {
+            mutableStateOf(0.0)
+        }
+
+        fun cardImc(imc: Double): Color{
+            return when {
+                imc == 0.0 -> Color(0xFFA9A9A9)
+                imc >= 18.5 && imc < 25 -> Color(0xFF027003)
+                imc >= 25 && imc < 30 -> Color(0xFFFFA500)
+                else -> Color.Red
+            }
+        }
+
         Column(
             modifier = Modifier
                 .background(color = colorResource(R.color.cor_app))
@@ -87,14 +111,6 @@ fun IMCScreen(modifier: Modifier = Modifier) {
             )
         }
 
-        var altura by remember {
-            mutableStateOf("")
-        }
-
-        var peso by remember {
-            mutableStateOf("")
-        }
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -113,23 +129,25 @@ fun IMCScreen(modifier: Modifier = Modifier) {
             ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
                     verticalArrangement = Arrangement.SpaceEvenly,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "Seus Dados",
                         color = colorResource(R.color.cor_app),
-                        fontSize = 28.sp
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold
                     )
 
-                    TextField(
+                    OutlinedTextField(
                         value = altura,
                         onValueChange = {
                             altura = it
                         },
 
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         placeholder = {
                             Text(
                                 text = "Altura"
@@ -138,13 +156,13 @@ fun IMCScreen(modifier: Modifier = Modifier) {
                         singleLine = true
                     )
 
-                    TextField(
+                    OutlinedTextField(
                         value = peso,
                         onValueChange = {
                             peso = it
                         },
 
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         placeholder = {
                             Text(
                                 text = "Peso"
@@ -154,45 +172,101 @@ fun IMCScreen(modifier: Modifier = Modifier) {
                     )
 
                     Button(
-                        onClick = {},
+                        onClick = {
+                            val alturaMetros = altura.toDouble() / 100
+
+                            if (alturaMetros > 0 && peso.toDouble() > 0){
+                                imc = peso.toDouble() / (alturaMetros * alturaMetros)
+                            }
+                        },
                         modifier = Modifier
-                            .background(colorResource(R.color.cor_app))
+                            .fillMaxWidth()
+                            .padding(horizontal = 28.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.cor_app),
+                            contentColor = Color.White
+                        )
                     ) {
                         Text(
                             text = "Calcular",
-                            color = Color.White
+                            fontSize = 18.sp
                         )
                     }
                 }
             }
         }
 
-        val imc = 0
-
         Row(
             modifier = modifier
                 .fillMaxWidth()
+                .padding(horizontal = 24.dp)
         ) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(80.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = cardImc(imc),
+                    contentColor = Color.White
+                ),
+                elevation = CardDefaults.cardElevation(4.dp)
             ) {
-                Text(
-                    text = "$imc"
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Text(
+                        text = "%.1f".format(imc),
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
 
-                if (imc < 18.5){
-                    Text(text = "Abaixo do peso.")
-                }else if (imc < 25){
-                    Text(text = "Peso ideal.")
-                }else if (imc < 30){
-                    Text(text = "Levemente acima do peso.")
-                }else if (imc < 35){
-                    Text(text = "Obesidade grau 1.")
-                }else if (imc < 40){
-                    Text(text = "Obesidade grau 2.")
-                }else{
-                    Text(text = "Obesidade grau 3.")
+                    if (imc == 0.0){
+                        Text(
+                            text = "Calcule seu IMC!",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }else if (imc < 18.5){
+                        Text(
+                            text = "Abaixo do peso.",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }else if (imc < 25){
+                        Text(
+                            text = "Peso ideal.",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }else if (imc < 30){
+                        Text(
+                            text = "Levemente acima do peso.",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }else if (imc < 35){
+                        Text(
+                            text = "Obesidade grau 1.",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }else if (imc < 40){
+                        Text(
+                            text = "Obesidade grau 2.",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }else{
+                        Text(
+                            text = "Obesidade grau 3.",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }
